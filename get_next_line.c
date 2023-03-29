@@ -5,66 +5,13 @@
 /*                                                    +:+ +:+         +:+     */
 /*   By: smihata <smihata@student.42tokyo.jp>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2023/03/27 14:37:28 by smihata           #+#    #+#             */
-/*   Updated: 2023/03/28 16:48:19 by smihata          ###   ########.fr       */
+/*   Created: 2023/03/29 17:07:36 by smihata           #+#    #+#             */
+/*   Updated: 2023/03/29 19:45:43 by smihata          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "get_next_line.h"
-#define BUFFER_SIZE 42
-
-size_t	ft_strlen(const char *s)
-{
-	size_t	len;
-
-	// original
-	if (!s)
-		return (0);
-	len = 0;
-	while (*s++ != '\0')
-		len++;
-	return (len);
-}
-
-size_t	ft_strlcpy(char *dst, const char *src, size_t dstsize)
-{
-	size_t	i;
-
-	i = 0;
-	while (i + 1 < dstsize && src[i])
-	{
-		dst[i] = src[i];
-		i++;
-	}
-	if (dstsize > 0)
-		dst[i] = '\0';
-	return (ft_strlen(src));
-}
-
-void	*ft_memcpy(void *dst, const void *src, size_t len)
-{
-	void	*ptr;
-
-	ptr = dst;
-	if (dst == src)
-		return (ptr);
-	while (len--)
-		*(unsigned char *)dst++ = *(const unsigned char *)src++;
-	return (ptr);
-}
-
-char	*ft_strdup(const char *str)
-{
-	char	*cpy;
-	size_t	len;
-
-	len = ft_strlen(str);
-	cpy = (char *)malloc(sizeof(char) * (len + 1));
-	if (!cpy)
-		return (NULL);
-	ft_memcpy(cpy, str, len + 1);
-	return (cpy);
-}
+// #define BUFFER_SIZE 42
 
 char	*ft_strnjoin(char *s1, char *s2, size_t len)
 {
@@ -80,69 +27,6 @@ char	*ft_strnjoin(char *s1, char *s2, size_t len)
 	ft_strlcpy(dst, s1, s1_len + 1);
 	ft_strlcpy(dst + s1_len, s2, len + 1);
 	return (dst);
-}
-
-// cが存在する場合		: cを含めた長さ
-// cが存在しない場合	: strlen(s)
-size_t	ft_strchr_len(char *s, char c)
-{
-	size_t	i;
-
-	i = 0;
-	while (s[i])
-	{
-		if (s[i] == c)
-		{
-			i++;
-			break ;
-		}
-		i++;
-	}
-	return (i);
-}
-
-// -1 : error
-// 0  : \n は存在しない
-// 1  : \n が存在する
-int	find_newline(int fd, char **line, char **st_arr, char *buf)
-{
-	char	*tmp;
-	size_t	len;
-	int		value;
-
-	value = -1;
-	if (fd < 0)
-		return (value);
-	tmp = *line;
-	len = ft_strchr_len(buf, '\n');
-	*line = ft_strnjoin(tmp, buf, len);
-	free(tmp);
-	if (*line == NULL)
-		return (value);
-	free(*st_arr);
-	// \nが存在する
-	if (buf[len - 1] == '\n')
-	{
-		// buf + len + 1がbuffer overrunをするので len == 1の時は特別扱い。
-		if (len == 1)
-		{
-			*st_arr = NULL;
-		}
-		else
-		{
-			// *st_arr = ft_strdup(buf + len + 1);
-			*st_arr = ft_strdup(buf + len);
-		}
-		if (*st_arr == NULL)
-			value = 1;
-	}
-	// \nが存在しない
-	else
-	{
-		*st_arr = NULL;
-		value = 0;
-	}
-	return (value);
 }
 
 void	free_all(char **line, char **st_arr)
@@ -164,92 +48,125 @@ void	free_all(char **line, char **st_arr)
 		i++;
 	}
 	free(st_arr);
+	line = NULL;
+	st_arr = NULL;
+}
+
+// *line == NULL なので free はいらない ???
+int	ft_connect_line_to_save(char **line, char **save)
+{
+	size_t	len_to_nl;
+	char	*tmp_line;
+	char	*tmp_save;
+	int		line_have_nl;
+
+	len_to_nl = ft_strchr_len(*save, '\n');
+	// 1. save内に\nが存在する場合
+	if (save[0][len_to_nl - 1] == '\n')
+	{
+		// save = "s1\ns2"
+		// line <- "s1\n"
+		// save <- "s2"
+		tmp_line = *line;
+		*line = ft_strnjoin(tmp_line, *save, len_to_nl);
+		free(tmp_line);
+		tmp_save = *save;
+		*save = ft_strdup(tmp_save + len_to_nl);
+		free(tmp_save);
+		line_have_nl = 1;
+	}
+	// 2. save内に\nが存在しない場合
+	else
+	{
+		// save = "s";
+		// line <- "s";
+		// save = NULL;
+		*line = ft_strdup(*save);
+		free(*save);
+		*save = NULL;
+		line_have_nl = 0;
+	}
+	return (line_have_nl);
+}
+
+// saveはNULLが含まれているはず
+int	ft_get_new_line(int fd, char **line, char **save)
+{
+	char	buf[BUFFER_SIZE + 1];
+	char	*tmp_line;
+	int		read_buf_size;
+	int		len_to_nl;
+
+	while (1)
+	{
+		read_buf_size = read(fd, buf, BUFFER_SIZE);
+		if (read_buf_size < 0)
+			return (1);
+		if (read_buf_size == 0) // EOFに到達した
+			return (0);
+		buf[read_buf_size] = '\0';
+		len_to_nl = ft_strchr_len(buf, '\n');
+		tmp_line = *line;
+		*line = ft_strnjoin(tmp_line, buf, len_to_nl);
+		free(tmp_line);
+		if (line[0][ft_strlen(*line) - 1] == '\n') // \nに到達した
+		{
+			// buf = "s1\ns2"
+			// line <- "s1\n"
+			// save <- "s2"
+			if (ft_strlen(buf) == 1)
+				*save = NULL;
+			else
+				*save = ft_strdup(buf + len_to_nl);
+			return (0);
+		}
+	}
 }
 
 char	*get_next_line(int fd)
 {
-	char		buf[BUFFER_SIZE + 1];
 	char		*line;
-	static char	*st_arr;
-	int			len;
-	int			branch;
+	static char	*save;
+	int			line_have_nl;
+	int			error;
 
+	// save = malloc(4);
+	// save[0] = 'a'; save[1] = 'c'; save[2] = 'b'; save[3] = '\0';
 	if (fd < 0)
 		return (NULL);
 	line = NULL;
-	while (1)
+	if (save)
 	{
-		len = read(fd, buf, BUFFER_SIZE);
-		// read error
-		if (len < 0)
-		{
-			free_all(&line, &st_arr);
-			break ;
-		}
-		buf[len] = '\0';
-		if (len == 0 && st_arr == NULL)
-		{
-			// free(line);
-			// line = ft_strdup("\n");
-			break ;
-		}
-		// st_arrにまだ文字列が残っている間は処理を行う
-		// if (len == 0 && st_arr[0] != '\0')
-		// {
-			
-		// }
-		branch = find_newline(fd, &line, &st_arr, buf);
-		// \n が存在する
-		if (branch == 1)
-		{
-			break ;
-		}
-		if (branch == -1)
-		{
-			free_all(&line, &st_arr);
-			break ;
-		}
+		line_have_nl = ft_connect_line_to_save(&line, &save);
+		if (line_have_nl)
+			return (line);
 	}
+	error = ft_get_new_line(fd, &line, &save);
+	if (error)
+		free_all(&line, &save);
 	return (line);
 }
 
 
+// #include <fcntl.h>
+// #include <stdio.h>
 // int	main(void)
 // {
-// 	int		fd;
 // 	char	*line;
-
-// 	fd = open("test.txt", O_RDONLY);
-// 	if (fd < 0)
-// 		return (1);
-// 	while ((line = get_next_line(fd)) != NULL)
+// 	int		i;
+// 	int		fd1;
+// 	fd1 = open("test.txt", O_RDONLY);
+// 	i = 1;
+// 	while (i < 7)
 // 	{
-// 		printf("%s", line);
+// 		line = get_next_line(fd1);
+// 		printf("line [%02d]: %s", i, line);
 // 		free(line);
+// 		i++;
 // 	}
-// 	close(fd);
+// 	close(fd1);
 // 	return (0);
 // }
-
-#include <fcntl.h>
-#include <stdio.h>
-int	main(void)
-{
-	char	*line;
-	int		i;
-	int		fd1;
-	fd1 = open("test.txt", O_RDONLY);
-	i = 1;
-	while (i < 7)
-	{
-		line = get_next_line(fd1);
-		printf("line [%02d]: %s", i, line);
-		free(line);
-		i++;
-	}
-	close(fd1);
-	return (0);
-}
 
 // __attribute__((destructor))
 // static void destructor(void){
