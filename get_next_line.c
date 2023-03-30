@@ -6,7 +6,7 @@
 /*   By: smihata <smihata@student.42tokyo.jp>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/29 17:07:36 by smihata           #+#    #+#             */
-/*   Updated: 2023/03/29 19:45:43 by smihata          ###   ########.fr       */
+/*   Updated: 2023/03/30 14:48:37 by smihata          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -62,7 +62,7 @@ int	ft_connect_line_to_save(char **line, char **save)
 
 	len_to_nl = ft_strchr_len(*save, '\n');
 	// 1. save内に\nが存在する場合
-	if (save[0][len_to_nl - 1] == '\n')
+	if (len_to_nl >= 1 && save[0][len_to_nl - 1] == '\n')
 	{
 		// save = "s1\ns2"
 		// line <- "s1\n"
@@ -103,7 +103,15 @@ int	ft_get_new_line(int fd, char **line, char **save)
 		if (read_buf_size < 0)
 			return (1);
 		if (read_buf_size == 0) // EOFに到達した
+		{
+			if (ft_strlen(*line) == 0 && ft_strlen(*save) == 0)
+			{
+				tmp_line = *line;
+				free(tmp_line);
+				*line = NULL;
+			}
 			return (0);
+		}
 		buf[read_buf_size] = '\0';
 		len_to_nl = ft_strchr_len(buf, '\n');
 		tmp_line = *line;
