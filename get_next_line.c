@@ -6,81 +6,54 @@
 /*   By: smihata <smihata@student.42tokyo.jp>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/29 17:07:36 by smihata           #+#    #+#             */
-/*   Updated: 2023/03/30 14:48:37 by smihata          ###   ########.fr       */
+/*   Updated: 2023/03/30 16:13:34 by smihata          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "get_next_line.h"
-// #define BUFFER_SIZE 42
-
-char	*ft_strnjoin(char *s1, char *s2, size_t len)
-{
-	char	*dst;
-	size_t	s1_len;
-	size_t	s2_len;
-
-	s1_len = ft_strlen(s1);
-	s2_len = ft_strlen(s2);
-	dst = (char *)malloc(sizeof(char) * (s1_len + len + 1));
-	if (!dst)
-		return (NULL);
-	ft_strlcpy(dst, s1, s1_len + 1);
-	ft_strlcpy(dst + s1_len, s2, len + 1);
-	return (dst);
-}
 
 void	free_all(char **line, char **st_arr)
 {
-	return ;
 	size_t	i;
 
 	i = 0;
 	while (line[i])
 	{
 		free(line[i]);
+		line[i] = NULL;
 		i++;
 	}
-	free(line);
 	i = 0;
 	while (st_arr[i])
 	{
 		free(st_arr[i]);
+		st_arr[i] = NULL;
 		i++;
 	}
-	free(st_arr);
 	line = NULL;
 	st_arr = NULL;
 }
 
-// *line == NULL なので free はいらない ???
 int	ft_connect_line_to_save(char **line, char **save)
 {
 	size_t	len_to_nl;
-	char	*tmp_line;
-	char	*tmp_save;
+	char	*tmp;
 	int		line_have_nl;
 
 	len_to_nl = ft_strchr_len(*save, '\n');
-	// 1. save内に\nが存在する場合
 	if (len_to_nl >= 1 && save[0][len_to_nl - 1] == '\n')
 	{
-		// save = "s1\ns2"
-		// line <- "s1\n"
-		// save <- "s2"
-		tmp_line = *line;
-		*line = ft_strnjoin(tmp_line, *save, len_to_nl);
-		free(tmp_line);
-		tmp_save = *save;
-		*save = ft_strdup(tmp_save + len_to_nl);
-		free(tmp_save);
+		tmp = *line;
+		*line = ft_strnjoin(tmp, *save, len_to_nl);
+		free(tmp);
+		tmp = *save;
+		*save = ft_strdup(tmp + len_to_nl);
+		free(tmp);
+		tmp = NULL;
 		line_have_nl = 1;
 	}
-	// 2. save内に\nが存在しない場合
 	else
 	{
-		// save = "s";
-		// line <- "s";
-		// save = NULL;
 		*line = ft_strdup(*save);
 		free(*save);
 		*save = NULL;
@@ -89,7 +62,21 @@ int	ft_connect_line_to_save(char **line, char **save)
 	return (line_have_nl);
 }
 
-// saveはNULLが含まれているはず
+int	ft_eof_or_read_error(int read_buf_size, char **line)
+{
+	if (read_buf_size == 0)
+	{
+		if (ft_strlen(*line) == 0)
+		{
+			free(*line);
+			*line = NULL;
+		}
+		return (0);
+	}
+	else
+		return (1);
+}
+
 int	ft_get_new_line(int fd, char **line, char **save)
 {
 	char	buf[BUFFER_SIZE + 1];
@@ -100,28 +87,16 @@ int	ft_get_new_line(int fd, char **line, char **save)
 	while (1)
 	{
 		read_buf_size = read(fd, buf, BUFFER_SIZE);
-		if (read_buf_size < 0)
-			return (1);
-		if (read_buf_size == 0) // EOFに到達した
-		{
-			if (ft_strlen(*line) == 0 && ft_strlen(*save) == 0)
-			{
-				tmp_line = *line;
-				free(tmp_line);
-				*line = NULL;
-			}
-			return (0);
-		}
+		if (read_buf_size <= 0)
+			return (ft_eof_or_read_error(read_buf_size, line));
 		buf[read_buf_size] = '\0';
 		len_to_nl = ft_strchr_len(buf, '\n');
 		tmp_line = *line;
 		*line = ft_strnjoin(tmp_line, buf, len_to_nl);
 		free(tmp_line);
-		if (line[0][ft_strlen(*line) - 1] == '\n') // \nに到達した
+		tmp_line = NULL;
+		if (line[0][ft_strlen(*line) - 1] == '\n')
 		{
-			// buf = "s1\ns2"
-			// line <- "s1\n"
-			// save <- "s2"
 			if (ft_strlen(buf) == 1)
 				*save = NULL;
 			else
@@ -138,8 +113,6 @@ char	*get_next_line(int fd)
 	int			line_have_nl;
 	int			error;
 
-	// save = malloc(4);
-	// save[0] = 'a'; save[1] = 'c'; save[2] = 'b'; save[3] = '\0';
 	if (fd < 0)
 		return (NULL);
 	line = NULL;
@@ -154,29 +127,3 @@ char	*get_next_line(int fd)
 		free_all(&line, &save);
 	return (line);
 }
-
-
-// #include <fcntl.h>
-// #include <stdio.h>
-// int	main(void)
-// {
-// 	char	*line;
-// 	int		i;
-// 	int		fd1;
-// 	fd1 = open("test.txt", O_RDONLY);
-// 	i = 1;
-// 	while (i < 7)
-// 	{
-// 		line = get_next_line(fd1);
-// 		printf("line [%02d]: %s", i, line);
-// 		free(line);
-// 		i++;
-// 	}
-// 	close(fd1);
-// 	return (0);
-// }
-
-// __attribute__((destructor))
-// static void destructor(void){
-//     system("leaks -q a.out");
-// }
