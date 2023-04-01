@@ -6,7 +6,7 @@
 /*   By: smihata <smihata@student.42tokyo.jp>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/27 14:37:11 by smihata           #+#    #+#             */
-/*   Updated: 2023/03/30 15:34:50 by smihata          ###   ########.fr       */
+/*   Updated: 2023/04/01 13:02:42 by smihata          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,10 +43,8 @@ char	*ft_strnjoin(char *s1, char *s2, size_t len)
 {
 	char	*dst;
 	size_t	s1_len;
-	size_t	s2_len;
 
 	s1_len = ft_strlen(s1);
-	s2_len = ft_strlen(s2);
 	dst = (char *)malloc(sizeof(char) * (s1_len + len + 1));
 	if (!dst)
 		return (NULL);
