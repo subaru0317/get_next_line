@@ -6,16 +6,16 @@
 /*   By: smihata <smihata@student.42tokyo.jp>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/27 14:36:39 by smihata           #+#    #+#             */
-/*   Updated: 2023/04/01 13:26:14 by smihata          ###   ########.fr       */
+/*   Updated: 2023/04/03 13:12:12 by smihata          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef GET_NEXT_LINE_H
 # define GET_NEXT_LINE_H
 
-#ifndef BUFFER_SIZE
-# define BUFFER_SIZE 42
-#endif
+# ifndef BUFFER_SIZE
+#  define BUFFER_SIZE 42
+# endif
 
 # include <unistd.h>
 # include <stdlib.h>

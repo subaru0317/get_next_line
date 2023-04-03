@@ -6,7 +6,7 @@
 /*   By: smihata <smihata@student.42tokyo.jp>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/29 17:07:36 by smihata           #+#    #+#             */
-/*   Updated: 2023/04/01 13:23:57 by smihata          ###   ########.fr       */
+/*   Updated: 2023/04/03 13:13:37 by smihata          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -128,27 +128,27 @@ char	*get_next_line(int fd)
 	return (line);
 }
 
-#include <fcntl.h>
-#include <stdio.h>
-int	main(void)
-{
-	char	*line;
-	int		i;
-	int		fd1;
-	fd1 = open("test.txt", O_RDONLY);
-	i = 1;
-	while (i < 7)
-	{
-		line = get_next_line(fd1);
-		printf("line [%02d]: %s", i, line);
-		free(line);
-		i++;
-	}
-	close(fd1);
-	return (0);
-}
+// #include <fcntl.h>
+// #include <stdio.h>
+// int	main(void)
+// {
+// 	char	*line;
+// 	int		i;
+// 	int		fd1;
+// 	fd1 = open("test.txt", O_RDONLY);
+// 	i = 1;
+// 	while (i < 7)
+// 	{
+// 		line = get_next_line(fd1);
+// 		printf("line [%02d]: %s", i, line);
+// 		free(line);
+// 		i++;
+// 	}
+// 	close(fd1);
+// 	return (0);
+// }
 
-__attribute__((destructor))
-static void destructor(void){
-    system("leaks -q a.out");
-}
+// __attribute__((destructor))
+// static void destructor(void){
+//     system("leaks -q a.out");
+// }
