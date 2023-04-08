@@ -6,7 +6,7 @@
 /*   By: smihata <smihata@student.42tokyo.jp>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/27 14:37:11 by smihata           #+#    #+#             */
-/*   Updated: 2023/04/08 09:53:54 by smihata          ###   ########.fr       */
+/*   Updated: 2023/04/08 10:47:34 by smihata          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,21 +35,19 @@ char	*ft_strnjoin(char *s1, char *s2, size_t len)
 	if (!dst)
 		return (NULL);
 	i = 0;
-	while (i + 1 < s1_len + 1 && s1[i])
+	while (i < s1_len && s1[i])
 	{
 		dst[i] = s1[i];
 		i++;
 	}
-	if (s1_len + 1 > 0)
-		dst[i] = '\0';
+	dst[i] = '\0';
 	i = 0;
-	while (i + 1 < len + 1 && s2[i])
+	while (i < len && s2[i])
 	{
 		dst[i + s1_len] = s2[i];
 		i++;
 	}
-	if (len + 1 > 0)
-		dst[i + s1_len] = '\0';
+	dst[i + s1_len] = '\0';
 	return (dst);
 }
 
