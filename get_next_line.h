@@ -6,7 +6,7 @@
 /*   By: smihata <smihata@student.42tokyo.jp>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/27 14:36:39 by smihata           #+#    #+#             */
-/*   Updated: 2023/04/03 13:12:12 by smihata          ###   ########.fr       */
+/*   Updated: 2023/04/08 09:55:23 by smihata          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,10 +21,10 @@
 # include <stdlib.h>
 
 size_t	ft_strlen(const char *s);
-size_t	ft_strlcpy(char *dst, const char *src, size_t dstsize);
 char	*ft_strnjoin(char *s1, char *s2, size_t len);
 char	*ft_strdup(const char *str);
 size_t	ft_strchr_len(char *s, char c);
+char	*free_all(char **line, char **save);
 
 char	*get_next_line(int fd);
 #endif

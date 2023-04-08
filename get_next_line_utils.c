@@ -6,7 +6,7 @@
 /*   By: smihata <smihata@student.42tokyo.jp>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/27 14:37:11 by smihata           #+#    #+#             */
-/*   Updated: 2023/04/01 13:02:42 by smihata          ###   ########.fr       */
+/*   Updated: 2023/04/08 09:53:54 by smihata          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,32 +24,32 @@ size_t	ft_strlen(const char *s)
 	return (len);
 }
 
-size_t	ft_strlcpy(char *dst, const char *src, size_t dstsize)
-{
-	size_t	i;
-
-	i = 0;
-	while (i + 1 < dstsize && src[i])
-	{
-		dst[i] = src[i];
-		i++;
-	}
-	if (dstsize > 0)
-		dst[i] = '\0';
-	return (ft_strlen(src));
-}
-
 char	*ft_strnjoin(char *s1, char *s2, size_t len)
 {
 	char	*dst;
 	size_t	s1_len;
+	size_t	i;
 
 	s1_len = ft_strlen(s1);
 	dst = (char *)malloc(sizeof(char) * (s1_len + len + 1));
 	if (!dst)
 		return (NULL);
-	ft_strlcpy(dst, s1, s1_len + 1);
-	ft_strlcpy(dst + s1_len, s2, len + 1);
+	i = 0;
+	while (i + 1 < s1_len + 1 && s1[i])
+	{
+		dst[i] = s1[i];
+		i++;
+	}
+	if (s1_len + 1 > 0)
+		dst[i] = '\0';
+	i = 0;
+	while (i + 1 < len + 1 && s2[i])
+	{
+		dst[i + s1_len] = s2[i];
+		i++;
+	}
+	if (len + 1 > 0)
+		dst[i + s1_len] = '\0';
 	return (dst);
 }
 
@@ -86,4 +86,13 @@ size_t	ft_strchr_len(char *s, char c)
 		i++;
 	}
 	return (i);
+}
+
+char	*free_all(char **line, char **save)
+{
+	free(*line);
+	*line = NULL;
+	free(*save);
+	*save = NULL;
+	return (NULL);
 }
